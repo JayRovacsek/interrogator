@@ -1,0 +1,42 @@
+name: interrogator
+version: "0.1"
+author: Jay R. <jay@rovacsek.com>
+about: Tool to quickly interrogate Okta
+args:
+    - input:
+        short: i
+        long: input
+        value_name: FILE
+        help: Set a file to be ingested
+        takes_value: true
+        index: 1
+        required: true
+    - geolocation:
+        short: g
+        long: geolocation
+        value_name: FILE
+        help: Set a file to be ingested for geolocation association
+        takes_value: true
+    - rate_limit:
+        short: r
+        long: rate-limit
+        value_name: RATE_LIMIT
+        takes_value: true
+        min_values: 1
+        max_values: 250
+    - api_key:
+        short: k
+        long: api-key
+        value_name: API_KEY
+        takes_value: true
+    - sequential:
+        short: s
+        long: sequential
+    - output:
+        short: o
+        long: output
+        value_name: OUTPUT
+        takes_value: true
+    - verbose:
+        short: v
+        help: Sets the level of verbosity
