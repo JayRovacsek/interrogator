@@ -5,7 +5,7 @@ use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::net::Ipv6Addr;
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct Log {
     pub ip: Option<IpAddr>,
     pub remote_log_name: Option<String>,
@@ -20,7 +20,7 @@ pub struct Log {
     pub user_agent: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Method {
     Options,
     Get,
@@ -42,7 +42,7 @@ pub fn parse(input: &str, re: &(Regex, Regex)) -> Log {
         }
         None => match re.1.captures(input) {
             Some(c) => Log::from_apache_alternate_capture(&c),
-            None => panic!("Failed to parse input: {}", input),
+            _ => panic!("Failed to parse input: {}", input),
         },
     }
 }
