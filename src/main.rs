@@ -52,12 +52,26 @@ fn main() -> Result<()> {
 
     let mut thing = Ingestor::new(option, log_options, user_options.clone());
 
-    let geo: Vec<Geolocation> = match &user_options.geolocation {
-        Some(geo) => Geolocation::from_csv_file(String::from(geo), user_options.clone()),
-        _ => Geolocation::from_csv_file(
-            String::from("ip2location/ip2location.csv"),
-            user_options.clone(),
-        ),
+    let mut geo: Option<Vec<Geolocation>> = None;
+
+    if matches.is_present("geolocation") {
+        geo = match &user_options.geolocation {
+            Some(geo) => Some(Geolocation::from_csv_file(
+                String::from(geo),
+                user_options.clone(),
+            )),
+            _ => Some(Geolocation::from_csv_file(
+                String::from("ip2location/ip2location.csv"),
+                user_options.clone(),
+            )),
+        };
+    }
+
+    let logs = thing.ingest_file(target_file);
+
+    let a = match &geo {
+        Some(geo) => Analysis::new(&logs, Some(&geo)),
+        _ => Analysis::new(&logs, None),
     };
 
     // let geo = Geolocation::from_csv_file(
@@ -65,20 +79,29 @@ fn main() -> Result<()> {
     //     user_options.clone(),
     // );
 
-    let logs = thing.ingest_file(target_file);
+    // let logs = thing.ingest_file(target_file);
 
-    let a = Analysis::new(&logs, Some(&geo));
+    // let a = Analysis::new(&logs, Some(&geo));
     a.check_auth();
     let bots_logs = a.check_common_bots();
+    let unique_ips = a.get_unqiue_ips();
 
     match bots_logs {
         Some(logs) => println!("Found {} logs related to bots", logs.len()),
         None => println!("No bots found?"),
     }
 
+    match unique_ips {
+        Some(logs) => println!("Found {} logs have unique ips", logs.len()),
+        None => println!("No unique ips found?"),
+    }
+
     if user_options.verbose {
+        match geo {
+            Some(geo) => println!("Geolocations parsed: {}", geo.len()),
+            None => println!("No geolocations parsed"),
+        }
         println!("Logs parsed: {}", logs.len());
-        println!("Geolocations parsed: {}", geo.len());
     }
 
     Ok(())

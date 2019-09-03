@@ -1,8 +1,11 @@
+mod authentication;
+
 use crate::ingestion::geolocation::Geolocation;
 use crate::ingestion::log::Log;
+use authentication::Authentication;
 use rayon::prelude::*;
-use regex::Regex;
 use std::collections::HashSet;
+use std::net::IpAddr;
 
 pub struct Analysis<'a> {
     logs: &'a Vec<Log>,
@@ -31,6 +34,16 @@ impl<'a> Analysis<'a> {
         }
     }
 
+    pub fn get_unqiue_ips(&self) -> Option<Vec<IpAddr>> {
+        match self.logs.len() {
+            n if n > 0 => Authentication::unique_ips(self.logs.clone()),
+            _ => unreachable!(
+                "Either no logs were passed or something went severly wrong!\nLog count: {}",
+                self.logs.len()
+            ),
+        }
+    }
+
     pub fn check_velocity(&self) -> Option<Vec<Log>> {
         match self.logs.len() {
             n if n > 0 => None,
@@ -44,18 +57,18 @@ impl<'a> Analysis<'a> {
     pub fn check_common_bots(&self) -> Option<Vec<Log>> {
         match self.logs.len() {
             n if n > 0 => filter_bots(self.logs.clone()),
-                // Some(
-                // self.logs
-                //     .clone()
-                //     .into_iter()
-                //     .filter(|x| {
-                //         match &x.user_agent {
-                //             Some(agent) => agent,
-                //             None => "",
-                //         }
-                //         .contains("bot")
-                //     })
-                //     .collect::<Vec<Log>>(),
+            // Some(
+            // self.logs
+            //     .clone()
+            //     .into_iter()
+            //     .filter(|x| {
+            //         match &x.user_agent {
+            //             Some(agent) => agent,
+            //             None => "",
+            //         }
+            //         .contains("bot")
+            //     })
+            //     .collect::<Vec<Log>>(),
             // ),
             _ => unreachable!(
                 "Either no logs were passed or something went seriously wrong!\nLog count: {}",
