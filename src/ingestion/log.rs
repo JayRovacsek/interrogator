@@ -34,6 +34,12 @@ pub enum Method {
     Extension(String),
 }
 
+impl PartialEq for Method {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
 pub fn parse(input: &str, re: &(Regex, Regex)) -> Log {
     match re.0.captures(input) {
         Some(c) => {
@@ -100,6 +106,10 @@ impl Log {
         }
     }
 
+    pub fn exists_in_vec(log: &Log, logs: &Vec<Log>) -> bool {
+        logs.contains(log)
+    }
+
     pub fn from_apache_alternate_capture(capture: &Captures) -> Log {
         Log {
             ip: parse_ip(&capture[1]),
@@ -125,6 +135,21 @@ impl Log {
             Some(u) => String::from(u),
             None => String::from(""),
         }
+    }
+}
+
+impl PartialEq for Log {
+    fn eq(&self, other: &Self) -> bool {
+        self.ip == other.ip
+            && self.length == other.length
+            && self.path == other.length
+            && self.referrer == other.referrer
+            && self.remote_log_name == other.remote_log_name
+            && self.request_method == other.request_method
+            && self.status == other.status
+            && self.timezone == other.timezone
+            && self.user_agent == other.user_agent
+            && self.user_id == other.user_id
     }
 }
 

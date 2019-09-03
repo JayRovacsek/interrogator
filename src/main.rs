@@ -92,7 +92,7 @@ fn main() -> Result<()> {
     }
 
     match unique_ips {
-        Some(logs) => println!("Found {} logs to have unique ips", logs.len()),
+        Some(logs) => println!("Found {} logs have unique ips", logs.len()),
         None => println!("No unique ips found?"),
     }
 
