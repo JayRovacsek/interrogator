@@ -28,16 +28,16 @@ enum Reason {
 impl Analysis {
     pub fn new(logs: Vec<Log>, geolocations: Option<Vec<Geolocation>>) -> Analysis {
         Analysis {
-            logs: logs,
-            geolocations: geolocations,
-            anomalies: None,
+            logs,
+            geolocations,
+            anomalies: None
         }
     }
 
     fn add_anomaly(mut self, log: Log, reason: Reason) {
         let anomoly = Anomaly {
-            log: log,
-            reason: reason,
+            log,
+            reason,
         };
 
         match self.anomalies {

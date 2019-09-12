@@ -146,9 +146,9 @@ pub fn parse_status(input: &str) -> Option<u16> {
 }
 
 fn parse_ip(input: String) -> Option<IpAddr> {
-    match input.contains(".") {
+    match input.contains('.') {
         true => {
-            let components: Vec<&str> = input.split(".").collect();
+            let components: Vec<&str> = input.split('.').collect();
             Some(IpAddr::V4(Ipv4Addr::new(
                 parse_u8(components[0]),
                 parse_u8(components[1]),
@@ -186,5 +186,5 @@ fn parse_u16(input: &str) -> u16 {
     println!("{}", &i[0]);
     println!("{}", &i[1]);
 
-    ((i[0] as u16) << 8) | i[1] as u16
+    (u16::from(i[0]) << 8) | u16::from(i[1])
 }
