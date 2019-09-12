@@ -44,7 +44,7 @@ impl ProgramOptions {
                 .unwrap();
 
             user_options.rate_limit = match rate {
-                1...200 => rate,
+                1 ..=200 => rate,
                 _ => 150,
             };
         };

@@ -87,13 +87,13 @@ fn strip_csv_str(input: String) -> Vec<String> {
 
 fn parse_ip_address(input: usize) -> IpAddr {
     match input {
-        0..=4294967295 => parse_ipv4(input),
+        0..=4_294_967_295 => parse_ipv4(input),
         _ => parse_ipv6(input),
     }
 }
 
 fn parse_ipv4(input: usize) -> IpAddr {
-    let w: u8 = ((input / 16777216) % 256) as u8;
+    let w: u8 = ((input / 16_777_216) % 256) as u8;
     let x: u8 = ((input / 65536) % 256) as u8;
     let y: u8 = ((input / 256) % 256) as u8;
     let z: u8 = (input) as u8;

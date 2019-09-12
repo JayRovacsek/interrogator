@@ -34,7 +34,7 @@ impl Ingestor {
         Ingestor {
             file_name: String::new(),
             log_type: options.get(&option).unwrap().to_string(),
-            program_options: program_options,
+            program_options,
             re: select_regex(option),
         }
     }

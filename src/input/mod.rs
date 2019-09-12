@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 
 pub fn get_string_input() -> String {
     let mut buffer = String::new();
@@ -8,19 +7,14 @@ pub fn get_string_input() -> String {
 
 pub fn get_masked_input(prompt: &str) -> String {
     match rpassword::read_password_from_tty(Some(prompt)) {
-        Ok(result) => match result == String::default() {
-            true => get_masked_input(prompt),
-            _ => result,
+        Ok(result) => {
+            if result == String::default() { get_masked_input(prompt) } else { result }
         },
         _ => get_masked_input(prompt),
     }
 }
 
 pub fn get_option() -> u8 {
-    let u8_range = std::ops::Range {
-        start: 0 as u8,
-        end: 255 as u8,
-    };
     let input = get_string_input();
     match input.trim().parse::<u8>() {
         Ok(val) => val,

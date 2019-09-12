@@ -52,20 +52,20 @@ fn main() -> Result<()> {
 
     let mut thing = Ingestor::new(option, log_options, user_options.clone());
 
-    let mut geo: Option<Vec<Geolocation>> = None;
-
-    if matches.is_present("geolocation") {
-        geo = match &user_options.geolocation {
-            Some(geo) => Some(Geolocation::from_csv_file(
-                String::from(geo),
+    let mut geo: Option<Vec<Geolocation>> = if matches.is_present("geolocation") {
+        match &user_options.geolocation {
+            Some(g) => Some(Geolocation::from_csv_file(
+                String::from(g),
                 user_options.clone(),
             )),
             _ => Some(Geolocation::from_csv_file(
                 String::from("ip2location/ip2location.csv"),
                 user_options.clone(),
             )),
-        };
-    }
+        }
+    } else {
+        None
+    };
 
     let logs = thing.ingest_file(target_file);
 
