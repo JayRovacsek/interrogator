@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Geolocation {
     start: IpAddr,
     end: IpAddr,

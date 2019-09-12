@@ -4,33 +4,61 @@ use crate::ingestion::geolocation::Geolocation;
 use crate::ingestion::log::Log;
 use authentication::Authentication;
 use rayon::prelude::*;
-use std::collections::HashSet;
 use std::net::IpAddr;
 
-pub struct Analysis<'a> {
-    logs: &'a Vec<Log>,
-    geolocations: Option<&'a Vec<Geolocation>>,
-}
-
-struct Anomaly {
+pub struct Analysis {
     logs: Vec<Log>,
-    cause: Reason,
+    geolocations: Option<Vec<Geolocation>>,
+    anomalies: Option<Vec<Anomaly>>,
 }
 
+#[derive(Clone)]
+struct Anomaly {
+    log: Log,
+    reason: Reason,
+}
+
+#[derive(Clone)]
 enum Reason {
     Velocity,
     FailedLogins,
     Extension(String),
 }
 
-impl<'a> Analysis<'a> {
-    pub fn new(logs: &'a Vec<Log>, geolocations: Option<&'a Vec<Geolocation>>) -> Analysis<'a> {
+impl Analysis {
+    pub fn new(logs: Vec<Log>, geolocations: Option<Vec<Geolocation>>) -> Analysis {
         Analysis {
             logs: logs,
-            geolocations: match geolocations {
-                Some(g) => Some(g),
-                _ => None,
-            },
+            geolocations: geolocations,
+            anomalies: None,
+        }
+    }
+
+    fn add_anomaly(mut self, log: Log, reason: Reason) {
+        let anomoly = Anomaly {
+            log: log,
+            reason: reason,
+        };
+
+        match self.anomalies {
+            Some(a) => {
+                let mut new_vec = a.clone();
+                new_vec.append(&mut vec![anomoly]);
+                self.anomalies = Some(new_vec);
+            }
+            _ => {
+                self.anomalies = Some(vec![anomoly]);
+            }
+        }
+    }
+
+    pub fn unique_user_ids(&self) -> Option<Vec<String>> {
+        match self.logs.len() {
+            n if n > 0 => Authentication::unique_logins(&self.logs),
+            _ => unreachable!(
+                "Either no logs were passed or something went severly wrong!\nLog count: {}",
+                self.logs.len()
+            ),
         }
     }
 

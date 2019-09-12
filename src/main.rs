@@ -48,7 +48,7 @@ fn main() -> Result<()> {
         2 as u8 => "Other"
     };
 
-    let option = input::get_option(log_options.clone());
+    let option = input::get_option();
 
     let mut thing = Ingestor::new(option, log_options, user_options.clone());
 
@@ -70,35 +70,33 @@ fn main() -> Result<()> {
     let logs = thing.ingest_file(target_file);
 
     let a = match &geo {
-        Some(geo) => Analysis::new(&logs, Some(&geo)),
-        _ => Analysis::new(&logs, None),
+        Some(g) => Analysis::new(logs.clone(), Some(g.clone())),
+        _ => Analysis::new(logs.clone(), None),
     };
 
-    // let geo = Geolocation::from_csv_file(
-    //     String::from("ip2location/ip2location.csv"),
-    //     user_options.clone(),
-    // );
-
-    // let logs = thing.ingest_file(target_file);
-
-    // let a = Analysis::new(&logs, Some(&geo));
     a.check_auth();
     let bots_logs = a.check_common_bots();
     let unique_ips = a.get_unqiue_ips();
+    let unique_logins = a.unique_user_ids();
 
     match bots_logs {
-        Some(logs) => println!("Found {} logs related to bots", logs.len()),
+        Some(l) => println!("Found {} logs related to bots", l.len()),
         None => println!("No bots found?"),
     }
 
-    match unique_ips {
-        Some(logs) => println!("Found {} logs have unique ips", logs.len()),
-        None => println!("No unique ips found?"),
-    }
-
     if user_options.verbose {
+        match unique_ips {
+            Some(l) => println!("Found {} logs have unique ips", l.len()),
+            None => println!("No unique ips found?"),
+        }
+
+        match unique_logins {
+            Some(l) => println!("Found {} logs have unique user ids", l.len()),
+            None => println!("No unique user ids found?"),
+        }
+
         match geo {
-            Some(geo) => println!("Geolocations parsed: {}", geo.len()),
+            Some(g) => println!("Geolocations parsed: {}", g.len()),
             None => println!("No geolocations parsed"),
         }
         println!("Logs parsed: {}", logs.len());

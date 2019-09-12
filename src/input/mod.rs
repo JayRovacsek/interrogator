@@ -7,33 +7,26 @@ pub fn get_string_input() -> String {
 }
 
 pub fn get_masked_input(prompt: &str) -> String {
-    rpassword::read_password_from_tty(Some(prompt)).unwrap()
-}
-
-#[allow(dead_code)]
-pub fn get_input<T>() -> T
-where
-    T: From<usize>,
-{
-    let mut buffer = String::new();
-    std::io::stdin()
-        .read_line(&mut buffer)
-        .expect("Failed to parse input");
-    let r = buffer.clone().trim().parse::<usize>().is_ok();
-    match r {
-        true => T::from(buffer.trim().parse::<usize>().unwrap()),
-        _ => T::from(usize::max_value()),
+    match rpassword::read_password_from_tty(Some(prompt)) {
+        Ok(result) => match result == String::default() {
+            true => get_masked_input(prompt),
+            _ => result,
+        },
+        _ => get_masked_input(prompt),
     }
 }
 
-pub fn get_option(options: HashMap<u8, &str>) -> u8 {
-    let mut i: u8 = 255;
-    while !options.contains_key(&i) {
-        println!("What type of log are you using?");
-        for (key, val) in &options {
-            println!("{}) {}", key, val);
+pub fn get_option() -> u8 {
+    let u8_range = std::ops::Range {
+        start: 0 as u8,
+        end: 255 as u8,
+    };
+    let input = get_string_input();
+    match input.trim().parse::<u8>() {
+        Ok(val) => val,
+        _ => {
+            println!("Input didn't match expected range: 0 - 255");
+            get_option()
         }
-        i = get_string_input().trim().parse::<u8>().unwrap();
     }
-    i
 }
