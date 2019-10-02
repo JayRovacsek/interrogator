@@ -5,6 +5,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use crate::log_options::LogOptions;
 
 #[derive(Debug)]
 pub struct Ingestor {
@@ -28,13 +29,13 @@ impl std::fmt::Display for Ingestor {
 impl Ingestor {
     pub fn new(
         option: u8,
-        options: HashMap<u8, &str>,
+        log_options: LogOptions,
         program_options: ProgramOptions,
     ) -> Ingestor {
         Ingestor {
             file_name: String::new(),
-            log_type: options.get(&option).unwrap().to_string(),
-            program_options: program_options,
+            log_type: log_options.options.get(&option).unwrap().to_string(),
+            program_options,
             re: select_regex(option),
         }
     }
@@ -64,7 +65,6 @@ impl Ingestor {
 }
 
 fn select_regex(option: u8) -> (Regex, Regex) {
-    let empty_regex: Regex = regex::Regex::new("").unwrap();
     match option {
         0 => (regex::Regex::new(
                 r#"^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+) ("\S+") (.*)"#,
@@ -73,7 +73,7 @@ fn select_regex(option: u8) -> (Regex, Regex) {
                 r#"^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s* (\S+) (\S+)"#,
         ).unwrap())
         ,
-        _ => (empty_regex.clone(), empty_regex)
+        _ => panic!("Could not find an appropriate regex")
     }
 }
 

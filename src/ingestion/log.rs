@@ -42,10 +42,7 @@ impl PartialEq for Method {
 
 pub fn parse(input: &str, re: &(Regex, Regex)) -> Log {
     match re.0.captures(input) {
-        Some(c) => {
-            // println!("Parsed line: {:?}", c);
-            Log::from_apache_main_capture(&c)
-        }
+        Some(c) => Log::from_apache_main_capture(&c),
         None => match re.1.captures(input) {
             Some(c) => Log::from_apache_alternate_capture(&c),
             _ => panic!("Failed to parse input: {}", input),
@@ -53,7 +50,7 @@ pub fn parse(input: &str, re: &(Regex, Regex)) -> Log {
     }
 }
 
-impl std::fmt::Display for Log {
+impl<'a> std::fmt::Display for Log  {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -86,7 +83,7 @@ user_agent: {:?}",
 impl Log {
     pub fn from_apache_main_capture(capture: &Captures) -> Log {
         Log {
-            ip: parse_ip(&capture[1]),
+            ip: parse_ip(capture[1].to_string()),
             remote_log_name: Some(capture[2].to_string()),
             user_id: Some(capture[3].to_string()),
             date: Some(DateTime::parse_from_str(&capture[4], "%d/%b/%Y:%H:%M:%S %z").unwrap()),
@@ -99,20 +96,15 @@ impl Log {
                 capture[6].to_ascii_uppercase().to_string(),
             )),
             path: Some(capture[7].to_string()),
-            status: parse_status(&capture[8].to_string()),
+            status: parse_status(&capture[8]),
             length: Some(capture[9].to_string()),
             referrer: Some(capture[10].to_string()),
             user_agent: Some(capture[11].to_string()),
         }
     }
-
-    pub fn exists_in_vec(log: &Log, logs: &Vec<Log>) -> bool {
-        logs.contains(log)
-    }
-
     pub fn from_apache_alternate_capture(capture: &Captures) -> Log {
         Log {
-            ip: parse_ip(&capture[1]),
+            ip: parse_ip(capture[1].to_string()),
             remote_log_name: Some(capture[2].to_string()),
             user_id: Some(capture[3].to_string()),
             date: Some(DateTime::parse_from_str(&capture[4], "%d/%b/%Y:%H:%M:%S %z").unwrap()),
@@ -127,13 +119,6 @@ impl Log {
             length: Some(capture[7].to_string()),
             referrer: None,
             user_agent: None,
-        }
-    }
-
-    pub fn get_user(&self) -> String {
-        match &self.user_id {
-            Some(u) => String::from(u),
-            None => String::from(""),
         }
     }
 }
@@ -160,10 +145,10 @@ pub fn parse_status(input: &str) -> Option<u16> {
     }
 }
 
-fn parse_ip(input: &str) -> Option<IpAddr> {
-    match input.contains(".") {
+fn parse_ip(input: String) -> Option<IpAddr> {
+    match input.contains('.') {
         true => {
-            let components: Vec<&str> = input.split(".").collect();
+            let components: Vec<&str> = input.split('.').collect();
             Some(IpAddr::V4(Ipv4Addr::new(
                 parse_u8(components[0]),
                 parse_u8(components[1]),
@@ -201,5 +186,5 @@ fn parse_u16(input: &str) -> u16 {
     println!("{}", &i[0]);
     println!("{}", &i[1]);
 
-    ((i[0] as u16) << 8) | i[1] as u16
+    (u16::from(i[0]) << 8) | u16::from(i[1])
 }
