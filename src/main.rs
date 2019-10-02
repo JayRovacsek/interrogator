@@ -3,6 +3,7 @@ mod ingestion;
 mod input;
 mod okta;
 mod program_options;
+mod log_options;
 
 #[macro_use]
 extern crate clap;
@@ -19,48 +20,34 @@ use clap::App;
 use ingestion::geolocation::Geolocation;
 use ingestion::ingestor::Ingestor;
 use program_options::ProgramOptions;
+use log_options::LogOptions;
 use std::io::Result;
 
-macro_rules! map(
-    { $($key:expr => $value:expr),+ } => {
-        {
-            let mut m = ::std::collections::HashMap::new();
-            $(
-                m.insert($key, $value);
-            )+
-            m
-        }
-     };
-);
 
 fn main() -> Result<()> {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
 
-    let user_options = ProgramOptions::new(&matches);
+    let program_options = ProgramOptions::new(&matches);
     let target_file = matches
         .value_of("input")
         .expect("An error occured reading the input file!");
 
-    let log_options = map! {
-        0 as u8 => "Apache",
-        1 as u8 => "Nginx",
-        2 as u8 => "Other"
-    };
+    let log_options: LogOptions = LogOptions::new();
 
-    let option = input::get_option();
+    let option = input::get_option(None,Some(log_options.clone()));
 
-    let mut thing = Ingestor::new(option, log_options, user_options.clone());
+    let mut thing = Ingestor::new(option, log_options, program_options.clone());
 
-    let mut geo: Option<Vec<Geolocation>> = if matches.is_present("geolocation") {
-        match &user_options.geolocation {
+    let geo: Option<Vec<Geolocation>> = if matches.is_present("geolocation") {
+        match &program_options.geolocation {
             Some(g) => Some(Geolocation::from_csv_file(
                 String::from(g),
-                user_options.clone(),
+                program_options.clone(),
             )),
             _ => Some(Geolocation::from_csv_file(
                 String::from("ip2location/ip2location.csv"),
-                user_options.clone(),
+                program_options.clone(),
             )),
         }
     } else {
@@ -84,7 +71,7 @@ fn main() -> Result<()> {
         None => println!("No bots found?"),
     }
 
-    if user_options.verbose {
+    if program_options.verbose {
         match unique_ips {
             Some(l) => println!("Found {} logs have unique ips", l.len()),
             None => println!("No unique ips found?"),

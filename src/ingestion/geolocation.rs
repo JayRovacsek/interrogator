@@ -17,6 +17,16 @@ pub struct Geolocation {
 }
 
 impl Geolocation {
+    pub fn load(program_options: ProgramOptions) -> Option<Vec<Geolocation>> {
+        match &program_options.geolocation {
+            Some(geolocation) => Some(Geolocation::from_csv_file(
+                String::from(geolocation),
+                program_options,
+            )),
+            _ => None,
+        }
+    }
+
     pub fn from_str(input: &str) -> Geolocation {
         let components: Vec<String> = strip_csv_str(String::from(input));
         Geolocation {
@@ -32,8 +42,6 @@ impl Geolocation {
     }
 
     pub fn from_csv_file(input: String, program_options: ProgramOptions) -> Vec<Geolocation> {
-        let mut geolocations: Vec<Geolocation> = Vec::new();
-
         let file = BufReader::new(File::open(input).unwrap());
         let lines: Vec<String> = file.lines().map(|x| x.unwrap()).collect();
 
@@ -41,13 +49,12 @@ impl Geolocation {
             true => lines
                 .par_iter()
                 .map(|line| Geolocation::from_str(line))
-                .collect_into_vec(&mut geolocations),
-            false => lines
-                .par_iter()
-                .map(|line| Geolocation::from_str(line))
-                .collect_into_vec(&mut geolocations),
+                .collect::<Vec<Geolocation>>(),
+            _ => lines
+                .into_iter()
+                .map(|line| Geolocation::from_str(&line))
+                .collect::<Vec<Geolocation>>()
         }
-        geolocations
     }
 }
 
