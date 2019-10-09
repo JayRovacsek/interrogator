@@ -30,24 +30,32 @@ impl Analysis {
         Analysis {
             logs,
             geolocations,
-            anomalies: None
+            anomalies: None,
         }
     }
 
-    fn add_anomaly(mut self, log: Log, reason: Reason) {
-        let anomoly = Anomaly {
-            log,
-            reason,
-        };
-
-        match self.anomalies {
+    fn add_anomalies(&mut self, new_anomolies: &mut Vec<Anomaly>) {
+        match &self.anomalies {
             Some(a) => {
                 let mut new_vec = a.clone();
-                new_vec.append(&mut vec![anomoly]);
+                new_vec.append(new_anomolies);
                 self.anomalies = Some(new_vec);
             }
             _ => {
-                self.anomalies = Some(vec![anomoly]);
+                self.anomalies = Some(new_anomolies.clone().to_vec());
+            }
+        }
+    }
+
+    fn add_anomaly(mut self, anomaly: Anomaly) {
+        match self.anomalies {
+            Some(a) => {
+                let mut new_vec = a.clone();
+                new_vec.append(&mut vec![anomaly]);
+                self.anomalies = Some(new_vec);
+            }
+            _ => {
+                self.anomalies = Some(vec![anomaly]);
             }
         }
     }
@@ -62,9 +70,9 @@ impl Analysis {
         }
     }
 
-    pub fn get_unqiue_ips(&self) -> Option<Vec<IpAddr>> {
+    pub fn get_unqiue_ips(&mut self) -> Option<Vec<IpAddr>> {
         match self.logs.len() {
-            n if n > 0 => Authentication::unique_ips(self.logs.clone()),
+            n if n > 0 => Authentication::unique_ips(&self.logs),
             _ => unreachable!(
                 "Either no logs were passed or something went severly wrong!\nLog count: {}",
                 self.logs.len()
@@ -82,96 +90,57 @@ impl Analysis {
         }
     }
 
-    pub fn check_common_bots(&self) -> Option<Vec<Log>> {
-        match self.logs.len() {
-            n if n > 0 => filter_bots(self.logs.clone()),
-            // Some(
-            // self.logs
-            //     .clone()
-            //     .into_iter()
-            //     .filter(|x| {
-            //         match &x.user_agent {
-            //             Some(agent) => agent,
-            //             None => "",
-            //         }
-            //         .contains("bot")
-            //     })
-            //     .collect::<Vec<Log>>(),
-            // ),
+    pub fn check_common_bots(&mut self) {
+        let mut anomolies = match self.logs.len() {
+            n if n > 0 => filter_bots(&self.logs),
             _ => unreachable!(
                 "Either no logs were passed or something went seriously wrong!\nLog count: {}",
                 self.logs.len()
             ),
+        };
+        match anomolies.len() {
+            0 => {
+                println!("No common bots found.");
+            }
+            _ => self.add_anomalies(&mut anomolies),
         }
     }
 
-    pub fn check_auth(&self) -> Option<Vec<Log>> {
-        match self.logs.len() {
-            n if n > 0 => Some(
-                self.logs
-                    .clone()
-                    .into_iter()
-                    .filter(|x| {
-                        match &x.user_agent {
-                            Some(agent) => agent,
-                            None => "",
-                        }
-                        .contains("bot")
-                    })
-                    .collect::<Vec<Log>>(),
-            ),
-            // n if n > 0 => {
-            //     // let users = self.logs.into_iter().unique_by(|x| &x.user_id);
-            //     // let mut logs = self.logs.clone();
-            //     let mut uniques = HashSet::new();
-            //     for l in self.logs.clone().iter_mut() {
-            //         match &l.user_id {
-            //             Some(id) => {
-            //                 if uniques.contains(id) {
-            //                     uniques.insert(id.clone());
-            //                 }
-            //             }
-            //             _ => panic!("No user id!"),
-            //         }
-            //     }
-            //     // println!("Unique users: {:?}", logs.len());
-            //     // logs.retain(|e| uniques.insert(e.clone()));
-            //     // println!("Unique users: {:?}", logs.len());
-            //     None
-            // }
-            _ => unreachable!(
-                "Either no logs were passed or something went seriously wrong!\nLog count: {}",
-                self.logs.len()
-            ),
-        }
+    pub fn check_auth(&self) {
+        println!("Check auth stub");
     }
 
-    fn correlate_user(&self, user: String) -> Option<Vec<Log>> {
-        Some(
+    fn correlate_user(&mut self, user: String) -> Vec<Log> {
         self.logs
         .clone()
         .into_par_iter()
         .filter(|x| match &x.user_id {
             Some(u) => String::from(u),
             None => String::from("")
-        } == user).collect())
+        } == user).collect()
     }
 }
 
-fn filter_bots(logs: Vec<Log>) -> Option<Vec<Log>> {
-    let re = regex::Regex::new(r#"[bot|BOT]"#).unwrap();
-    Some(
-        logs.into_iter()
-            .filter(|x| {
-                match &x.user_agent {
-                    Some(agent) => match re.captures(agent) {
-                        Some(capture) => agent,
-                        _ => "",
-                    },
-                    None => "",
-                }
-                .contains("bot")
-            })
-            .collect::<Vec<Log>>(),
-    )
+fn filter_bots(logs: &Vec<Log>) -> Vec<Anomaly> {
+    let re = regex::Regex::new(r#"(bot)|(BOT)"#).unwrap();
+
+    let anomolous_logs = logs
+        .clone()
+        .into_par_iter()
+        .filter(|x| match &x.user_agent {
+            Some(user_agent) => match re.captures(&user_agent) {
+                Some(_capture) => true,
+                _ => false,
+            },
+            _ => false,
+        })
+        .collect::<Vec<Log>>();
+
+    anomolous_logs
+        .par_iter()
+        .map(|x| Anomaly {
+            reason: Reason::Extension(String::from("Bot User")),
+            log: x.clone(),
+        })
+        .collect::<Vec<Anomaly>>()
 }

@@ -13,7 +13,7 @@ pub struct ProgramOptions {
 
 impl ProgramOptions {
     pub fn new(matches: &clap::ArgMatches) -> ProgramOptions {
-        let mut user_options: ProgramOptions = ProgramOptions {
+        let mut program_options: ProgramOptions = ProgramOptions {
             input: matches
                 .value_of("input")
                 .unwrap()
@@ -29,10 +29,8 @@ impl ProgramOptions {
         };
 
         if matches.is_present("geolocation") {
-            let geo = matches
-                .value_of("geolocation")
-                .unwrap();
-            user_options.geolocation = Some(String::from(geo));
+            let geo = matches.value_of("geolocation").unwrap();
+            program_options.geolocation = Some(String::from(geo));
         }
 
         if matches.is_present("rate_limit") {
@@ -43,52 +41,82 @@ impl ProgramOptions {
                 .parse::<usize>()
                 .unwrap();
 
-            user_options.rate_limit = match rate {
-                1 ..=200 => rate,
+            program_options.rate_limit = match rate {
+                1..=200 => rate,
                 _ => 150,
             };
         };
 
         if matches.is_present("api_key") {
-            user_options.api_key = String::from(matches.value_of("api_key").unwrap_or_default());
+            program_options.api_key = String::from(matches.value_of("api_key").unwrap_or_default());
         } else {
-            user_options.api_key = input::get_masked_input("Please enter API key:");
+            program_options.api_key = input::get_masked_input("Please enter API key:");
         }
 
         if matches.is_present("sequential") {
-            user_options.sequential = true;
+            program_options.sequential = true;
         };
 
         if matches.is_present("output") {
-            user_options.output = Some(String::from(
+            program_options.output = Some(String::from(
                 matches.value_of("output").unwrap_or("results.json"),
             ));
         };
 
         if matches.is_present("verbose") {
-            user_options.verbose = true;
+            program_options.verbose = true;
         };
 
-        user_options
+        if program_options.verbose {
+            println!("Loading program settings, they appear to be:");
+            println!("{}", program_options);
+        }
+
+        program_options
     }
+}
+
+fn mask_output(input: &str) -> String {
+    let mut result = String::from(input);
+    let range = match input.len() < 5 {
+        true => input.len(),
+        _ => input.len() - 4,
+    };
+    let mask = (0..range).fold(String::new(), |s, _u| s + "*");
+
+    result.replace_range(..range, &mask);
+    result
 }
 
 impl std::fmt::Display for ProgramOptions {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let geo = match &self.geolocation {
+            Some(geo) => geo,
+            _ => "No geolocation file in options",
+        };
+
+        let output = match &self.output {
+            Some(output) => output,
+            _ => "No output location in options",
+        };
+
         write!(
             f,
-            "Input: {}
-            Rate limit: {}
-            API key: {}
-            Sequential: {}
-            Output: {}
-            Verbose: {}
-            '",
+            "#######################\n
+Input:\t\t\t{}
+Rate limit:\t\t{}
+Geolocation:\t\t{}
+API key:\t\t{}
+Sequential:\t\t{}
+Output:\t\t\t{}
+Verbose:\t\t{}\n
+#######################",
             self.input,
             self.rate_limit,
-            self.api_key,
+            geo,
+            mask_output(&self.api_key),
             self.sequential,
-            self.output.clone().unwrap_or_default(),
+            output,
             self.verbose
         )
     }

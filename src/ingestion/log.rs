@@ -50,7 +50,7 @@ pub fn parse(input: &str, re: &(Regex, Regex)) -> Log {
     }
 }
 
-impl<'a> std::fmt::Display for Log  {
+impl<'a> std::fmt::Display for Log {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -181,10 +181,6 @@ fn parse_u8(input: &str) -> u8 {
 }
 
 fn parse_u16(input: &str) -> u16 {
-    println!("{}", &input);
     let i = input.as_bytes().to_owned();
-    println!("{}", &i[0]);
-    println!("{}", &i[1]);
-
     (u16::from(i[0]) << 8) | u16::from(i[1])
 }
