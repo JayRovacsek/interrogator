@@ -1,11 +1,11 @@
 use super::log::Log;
+use crate::log_options::LogOptions;
 use crate::ProgramOptions;
 use rayon::prelude::*;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use crate::log_options::LogOptions;
 
 #[derive(Debug)]
 pub struct Ingestor {
@@ -27,11 +27,7 @@ impl std::fmt::Display for Ingestor {
 }
 
 impl Ingestor {
-    pub fn new(
-        option: u8,
-        log_options: LogOptions,
-        program_options: ProgramOptions,
-    ) -> Ingestor {
+    pub fn new(option: u8, log_options: LogOptions, program_options: ProgramOptions) -> Ingestor {
         Ingestor {
             file_name: String::new(),
             log_type: log_options.options.get(&option).unwrap().to_string(),
@@ -42,25 +38,23 @@ impl Ingestor {
 
     pub fn ingest_file(&mut self, file_name: &str) -> Vec<Log> {
         self.file_name = file_name.clone().to_string();
-        let mut logs: Vec<Log> = Vec::new();
 
         let file = BufReader::new(File::open(&self.file_name).unwrap());
         let lines: Vec<String> = file.lines().map(|x| x.unwrap()).collect();
         if self.program_options.verbose {
-            println!("Number of lines: {:?}", lines.len());
+            println!("Number of lines in {:?}: {:?}", self.file_name, lines.len());
         }
 
         match self.program_options.sequential {
-            true => lines
-                .par_iter()
-                .map(|line| super::log::parse(&line, &self.re))
-                .collect_into_vec(&mut logs),
             false => lines
                 .par_iter()
                 .map(|line| super::log::parse(&line, &self.re))
-                .collect_into_vec(&mut logs),
+                .collect(),
+            _ => lines
+                .iter()
+                .map(|line| super::log::parse(&line, &self.re))
+                .collect(),
         }
-        logs
     }
 }
 

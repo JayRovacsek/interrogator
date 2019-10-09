@@ -1,9 +1,9 @@
 mod analysis;
 mod ingestion;
 mod input;
+mod log_options;
 mod okta;
 mod program_options;
-mod log_options;
 
 #[macro_use]
 extern crate clap;
@@ -19,10 +19,10 @@ use analysis::Analysis;
 use clap::App;
 use ingestion::geolocation::Geolocation;
 use ingestion::ingestor::Ingestor;
-use program_options::ProgramOptions;
 use log_options::LogOptions;
+use program_options::ProgramOptions;
+use rayon::prelude::*;
 use std::io::Result;
-
 
 fn main() -> Result<()> {
     let yaml = load_yaml!("cli.yml");
@@ -35,7 +35,7 @@ fn main() -> Result<()> {
 
     let log_options: LogOptions = LogOptions::new();
 
-    let option = input::get_option(None,Some(log_options.clone()));
+    let option = input::get_option(None, Some(log_options.clone()));
 
     let mut thing = Ingestor::new(option, log_options, program_options.clone());
 
@@ -56,20 +56,15 @@ fn main() -> Result<()> {
 
     let logs = thing.ingest_file(target_file);
 
-    let a = match &geo {
+    let mut a = match &geo {
         Some(g) => Analysis::new(logs.clone(), Some(g.clone())),
         _ => Analysis::new(logs.clone(), None),
     };
 
     a.check_auth();
-    let bots_logs = a.check_common_bots();
+    a.check_common_bots();
     let unique_ips = a.get_unqiue_ips();
     let unique_logins = a.unique_user_ids();
-
-    match bots_logs {
-        Some(l) => println!("Found {} logs related to bots", l.len()),
-        None => println!("No bots found?"),
-    }
 
     if program_options.verbose {
         match unique_ips {
