@@ -1,6 +1,6 @@
-use super::Log;
 use std::collections::HashSet;
 use std::net::IpAddr;
+use engine::log::Log;
 
 pub struct Authentication {}
 

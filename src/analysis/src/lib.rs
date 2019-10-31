@@ -1,7 +1,6 @@
-mod authentication;
+pub mod authentication;
 
-use crate::ingestion::geolocation::Geolocation;
-use crate::ingestion::log::Log;
+use engine::geolocation::Geolocation;
 use authentication::Authentication;
 use rayon::prelude::*;
 use std::net::IpAddr;
@@ -143,4 +142,14 @@ fn filter_bots(logs: &Vec<Log>) -> Vec<Anomaly> {
             log: x.clone(),
         })
         .collect::<Vec<Anomaly>>()
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
 }

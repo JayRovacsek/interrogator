@@ -1,9 +1,7 @@
-mod analysis;
-mod ingestion;
-mod input;
-mod log_options;
-mod okta;
-mod program_options;
+use input;
+use engine;
+use okta;
+use analysis;
 
 #[macro_use]
 extern crate clap;
@@ -11,7 +9,6 @@ extern crate chrono;
 extern crate lazy_static;
 extern crate rayon;
 extern crate regex;
-extern crate rpassword;
 #[macro_use]
 extern crate serde_derive;
 

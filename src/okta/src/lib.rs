@@ -1,6 +1,8 @@
 // Example code that deserializes and serializes the model.
 extern crate serde;
 extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
 //
 // use generated_module::[object Object];
 //
@@ -250,5 +252,12 @@ pub struct Transaction {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Detail {
+pub struct Detail {}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
 }

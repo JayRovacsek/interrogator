@@ -1,6 +1,9 @@
-use super::log::Log;
-use crate::log_options::LogOptions;
-use crate::ProgramOptions;
+pub mod geolocation;
+pub mod log;
+
+extern crate input;
+
+use input;
 use rayon::prelude::*;
 use regex::Regex;
 use std::collections::HashMap;
@@ -89,3 +92,11 @@ fn select_regex(option: u8) -> (Regex, Regex) {
 //         assert_eq!("-1".to_owned().parse::<u16>().unwrap(), 1 as u16)
 //     }
 // }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}

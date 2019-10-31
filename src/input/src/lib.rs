@@ -1,5 +1,7 @@
-use crate::log_options::LogOptions;
+crate options;
+
 use std::collections::HashMap;
+use options::LogOptions;
 
 pub fn get_string_input(prompt: Option<&str>) -> String {
     let mut buffer = String::new();
@@ -47,5 +49,15 @@ pub fn get_option(prompt: Option<&str>, options: Option<LogOptions>) -> u8 {
             println!("Input didn't match expected range: 0 - 255");
             get_option(prompt, options)
         }
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
     }
 }
