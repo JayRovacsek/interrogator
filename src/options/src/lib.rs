@@ -1,5 +1,10 @@
 extern crate clap;
 
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+
 use input;
 use std::collections::HashMap;
 
@@ -151,6 +156,32 @@ Verbose:\t\t{}\n
             output,
             self.verbose
         )
+    }
+}
+
+pub fn get_option(prompt: Option<&str>, options: Option<LogOptions>) -> u8 {
+    let input = match &prompt {
+        Some(p) => input::get_string_input(Some(p)),
+        _ => match &options {
+            Some(o) => {
+                let options_prompt = o
+                    .options
+                    .iter()
+                    .fold(String::from("Please enter log type:"), |s, option| {
+                        format!("{}\n{:?}: {:?}", s, option.0, option.1)
+                    });
+                input::get_string_input(Some(&options_prompt))
+            }
+            _ => panic!("No prompt or options were passed to get_option function"),
+        },
+    };
+
+    match input.trim().parse::<u8>() {
+        Ok(val) => val,
+        _ => {
+            println!("Input didn't match expected range: 0 - 255");
+            get_option(prompt, options)
+        }
     }
 }
 

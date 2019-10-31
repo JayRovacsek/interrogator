@@ -8,5 +8,3 @@ edition = "2018"
 
 [dependencies]
 rpassword = "3.0.2"
-
-options = { path="../options" }

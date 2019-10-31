@@ -1,12 +1,16 @@
 pub mod geolocation;
 pub mod log;
 
-extern crate input;
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+extern crate chrono;
 
-use input;
+use log::Log;
+use options::{LogOptions, ProgramOptions};
 use rayon::prelude::*;
 use regex::Regex;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -51,11 +55,11 @@ impl Ingestor {
         match self.program_options.sequential {
             false => lines
                 .par_iter()
-                .map(|line| super::log::parse(&line, &self.re))
+                .map(|line| log::parse(&line, &self.re))
                 .collect(),
             _ => lines
                 .iter()
-                .map(|line| super::log::parse(&line, &self.re))
+                .map(|line| log::parse(&line, &self.re))
                 .collect(),
         }
     }

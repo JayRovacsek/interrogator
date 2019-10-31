@@ -1,24 +1,12 @@
-use input;
-use engine;
-use okta;
-use analysis;
-
 #[macro_use]
 extern crate clap;
-extern crate chrono;
 extern crate lazy_static;
-extern crate rayon;
-extern crate regex;
-#[macro_use]
-extern crate serde_derive;
 
 use analysis::Analysis;
 use clap::App;
-use ingestion::geolocation::Geolocation;
-use ingestion::ingestor::Ingestor;
-use log_options::LogOptions;
-use program_options::ProgramOptions;
-use rayon::prelude::*;
+use engine::geolocation::Geolocation;
+use engine::Ingestor;
+use options::{LogOptions, ProgramOptions};
 use std::io::Result;
 
 fn main() -> Result<()> {
@@ -32,7 +20,7 @@ fn main() -> Result<()> {
 
     let log_options: LogOptions = LogOptions::new();
 
-    let option = input::get_option(None, Some(log_options.clone()));
+    let option = options::get_option(None, Some(log_options.clone()));
 
     let mut thing = Ingestor::new(option, log_options, program_options.clone());
 

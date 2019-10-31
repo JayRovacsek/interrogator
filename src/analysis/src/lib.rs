@@ -1,7 +1,11 @@
 pub mod authentication;
 
-use engine::geolocation::Geolocation;
+extern crate rayon;
+extern crate regex;
+
 use authentication::Authentication;
+use engine::geolocation::Geolocation;
+use engine::log::Log;
 use rayon::prelude::*;
 use std::net::IpAddr;
 
@@ -143,8 +147,6 @@ fn filter_bots(logs: &Vec<Log>) -> Vec<Anomaly> {
         })
         .collect::<Vec<Anomaly>>()
 }
-
-
 
 #[cfg(test)]
 mod tests {
